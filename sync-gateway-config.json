@@ -1,0 +1,12 @@
+{
+  "interface":":4984",
+  "log": ["HTTP", "Auth"],
+  "databases": {
+    "automint": {
+      "server": "walrus:",
+      "users": {
+          "GUEST": {"disabled": false, "admin_channels": ["*"] }
+        }
+    }
+  }
+}
