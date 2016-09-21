@@ -325,21 +325,6 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             return false
         }
         
-        let paymentStatus = paymentSwitch.on ? "paid" : "due"
-        var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX"),"state":"Bill","status":paymentStatus,"cost" : Float32(serviceTotalInTitle.text!)!]
-        
-        if !paymentSwitch.on {
-            serviceProperty["partialpayment"] =  ["total":0]
-        }
-        
-        if problemDict != nil {
-            serviceProperty["problems"] = problemDict!
-        }
-        
-        if partDict != nil {
-            serviceProperty["inventories"] = partDict!
-        }
-        
         guard let serviceKey = exsistingService?.serviceId else {
             SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
             return false
@@ -357,10 +342,35 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             return false
         }
 
-        // get existing service
+        // get existing service list
         guard var services = vehicleFound["services"] as? [String:AnyObject] else {
             SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
             return false
+        }
+        
+        // get sevice
+        guard var serviceProperty = services[serviceKey] as? [String:AnyObject] else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+        
+        serviceProperty["date"] = NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX")
+        let paymentStatus = paymentSwitch.on ? "paid" : "due"
+        serviceProperty["status"] = paymentStatus
+        serviceProperty["cost"] = Float32(serviceTotalInTitle.text!)!
+        
+        if !paymentSwitch.on {
+            serviceProperty["partialpayment"] =  ["total":0]
+        } else {
+            serviceProperty.removeValueForKey("partialpayment")
+        }
+        
+        if problemDict != nil {
+            serviceProperty["problems"] = problemDict!
+        }
+        
+        if partDict != nil {
+            serviceProperty["inventories"] = partDict!
         }
         
         services[serviceKey] = serviceProperty
@@ -406,6 +416,10 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         let paymentStatus = paymentSwitch.on ? "paid" : "due"
         var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX"),"state":"Bill","status":paymentStatus,"cost" : Float32(serviceTotalInTitle.text!)!]
         
+        if let latInvoiceNumber = getLastInvoiceNumber() {
+            serviceProperty["invoiceno"] = latInvoiceNumber+1
+        }
+        
         if !paymentSwitch.on {
             serviceProperty["partialpayment"] =  ["total":0]
         }
@@ -431,6 +445,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         
         do {
             try retrDoc?.putProperties(docData)
+            updateInvoiceNumberbyOne()
         } catch let error as NSError {
             SharedClass.alertView("Error!!", strMessage: error.localizedDescription)
             return false
@@ -839,6 +854,54 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         }
     }
 
+    // get last invoice number form setting document
+    func getLastInvoiceNumber() -> Int? {
+        
+        // retrieve the document from the database
+        guard let retrievedDoc = SharedClass.sharedInstance.database?.documentWithID(SharedClass.sharedInstance.kSettingDocId!)
+        else { return nil }
+        
+        guard let settings = retrievedDoc.properties?["settings"] as? [String:AnyObject]
+        else { return nil }
+        
+        guard let invoices = settings["invoices"] as? [String:AnyObject]
+        else { return nil }
+        
+        return invoices["lastInvoiceNo"] as? Int
+        
+    }
+    
+    // add +1 & write new invoice number back to setting doc
+    func updateInvoiceNumberbyOne() -> Bool {
+        
+        // retrieve the document from the database
+        guard let retrievedDoc = SharedClass.sharedInstance.database?.documentWithID(SharedClass.sharedInstance.kSettingDocId!)
+            else { return false }
+        
+        guard var settings = retrievedDoc.properties?["settings"] as? [String:AnyObject]
+            else { return false }
+        
+        guard var invoices = settings["invoices"] as? [String:AnyObject]
+            else { return false }
+        
+        guard let lastInvoiceNumber = invoices["lastInvoiceNo"] as? Int
+            else { return false }
+        
+        invoices["lastInvoiceNo"] = lastInvoiceNumber + 1
+        settings["invoices"] = invoices
+        
+        var docData = retrievedDoc.properties
+        docData!["settings"] = settings
+        
+        do {
+            try retrievedDoc.putProperties(docData!)
+        } catch let error as NSError {
+            print(error.localizedDescription)
+            return false
+        }
+        
+        return true
+    }
     
     //MARK: IBAction
     @IBAction func customerTitleTap(sender: AnyObject) {
