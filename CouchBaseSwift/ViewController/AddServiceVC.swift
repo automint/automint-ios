@@ -23,6 +23,8 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
 
     // Globle Variable
     var exsistingService : VehicleService?
+    var selectedVehicle : [String:AnyObject]?
+    var vehicleData : [String:AnyObject]?
     var problemDict:[String:AnyObject]?
     var partDict:[String:AnyObject]?
     var selectedVehicleType : String?
@@ -32,7 +34,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     var heightConstraintCustomerView:NSLayoutConstraint?
     var heightConstraintVehicleView:NSLayoutConstraint?
     var heightConstraintServiceView:NSLayoutConstraint?
-    
+    var mobilenumberChecked:String = ""
     var userNameList:[String] = []
     var userMobileList:[String:Int] = [:]
     
@@ -93,6 +95,13 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         super.viewWillAppear(animated)
         
         //TODO: update ui for selected vehile in vehicle details
+        
+        if selectedVehicle != nil {
+            manufNameTextField.text = selectedVehicle!["manuf"] as? String
+            modelNameTextField.text = selectedVehicle!["model"] as? String
+            registrationNumberTextField.text = selectedVehicle!["reg"] as? String
+        }
+        
         updateSelectedTreateatmentUI()
         updateSelectedPartUI()
         
@@ -146,8 +155,12 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         guard let vechileID = exsistingService?.vehicleID
             else {return}
         
+        vehicleData = userData["vehicles"] as? [String:AnyObject]
+        
         guard let vehicleData = userData["vehicles"]?.valueForKey(vechileID) as? [String:AnyObject]
             else{return}
+        
+        selectedVehicle = vehicleData
         
         manufNameTextField.text = vehicleData["manuf"] as? String
         modelNameTextField.text = vehicleData["model"] as? String
@@ -202,7 +215,8 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             return false
         }
         
-        var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX")]
+        let paymentStatus = paymentSwitch.on ? "paid" : "due"
+        var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX"),"state":"Bill","status":paymentStatus,"cost" : Float32(serviceTotalInTitle.text!)!]
         
         if !paymentSwitch.on {
             serviceProperty["partialpayment"] =  ["total":0]
@@ -304,6 +318,80 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     func updateService(documentID:String) -> Bool {
     
+        let retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+        
+        guard var docData = retrDoc?.properties else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+        
+        let paymentStatus = paymentSwitch.on ? "paid" : "due"
+        var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX"),"state":"Bill","status":paymentStatus,"cost" : Float32(serviceTotalInTitle.text!)!]
+        
+        if !paymentSwitch.on {
+            serviceProperty["partialpayment"] =  ["total":0]
+        }
+        
+        if problemDict != nil {
+            serviceProperty["problems"] = problemDict!
+        }
+        
+        if partDict != nil {
+            serviceProperty["inventories"] = partDict!
+        }
+        
+        guard let serviceKey = exsistingService?.serviceId else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+        guard let vehicleKey = exsistingService?.vehicleID else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+        guard let vehiclesDict = docData["user"]?.valueForKey("vehicles") as? [String:AnyObject] else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+        guard var vehicleFound = vehiclesDict[vehicleKey] as? [String:AnyObject] else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+
+        // get existing service
+        guard var services = vehicleFound["services"] as? [String:AnyObject] else {
+            SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
+            return false
+        }
+        
+        services[serviceKey] = serviceProperty
+     
+        // update document
+        var userData = docData["user"] as! [String:AnyObject]
+        var vehiclesData = userData["vehicles"] as! [String:AnyObject]
+        var vehicleInfo = vehiclesData[vehicleKey] as! [String:AnyObject]
+        vehicleInfo["services"] = services
+        vehicleInfo["reg"] = registrationNumberTextField.text!
+        vehicleInfo["manuf"] = manufNameTextField.text!
+        vehicleInfo["model"] = modelNameTextField.text!
+        vehicleInfo["type"] = vehicleTypeLabel.text!
+        vehiclesData[vehicleKey] = vehicleInfo
+        userData["vehicles"] = vehiclesData
+        userData["mobile"] = Int(customerMobileNumberTextField.text!)!
+        docData["name"] = customerNameTextField.text!
+        docData["user"] = userData
+        
+        do {
+            try retrDoc?.putProperties(docData)
+        } catch let error as NSError {
+            SharedClass.alertView("Error!!", strMessage: error.localizedDescription)
+            return false
+        }
+        
+        return true
+    }
+    
+    func addServiceInNewDoc(documentID:String) -> Bool {
+    
         var docData : [String:AnyObject] = [:]
         
         let retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
@@ -315,7 +403,8 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             docData["channel"] = "usr-CHANNEL"
         }
         
-        var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX")]
+        let paymentStatus = paymentSwitch.on ? "paid" : "due"
+        var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX"),"state":"Bill","status":paymentStatus,"cost" : Float32(serviceTotalInTitle.text!)!]
         
         if !paymentSwitch.on {
             serviceProperty["partialpayment"] =  ["total":0]
@@ -380,8 +469,8 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             } else {
                 // new service in new doc
                 // create docId
-                let documentID = "usr-\(customerNameTextField.text!)-\(SharedClass.timeBasedUUID())"
-                return updateService(documentID)
+                let documentID = "usr-\(customerNameTextField.text!.lowercaseString)-\(SharedClass.timeBasedUUID())"
+                return addServiceInNewDoc(documentID)
             }
             
         }
@@ -820,6 +909,53 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             serviceDetailStatic.textColor = customerStatic.textColor
             serviceTotalInTitle.textColor = serviceStatic.textColor
             serviceTotalStaticInTitle.textColor = serviceDetailStatic.textColor
+            
+            // check if new service then check for mobile number if exist then get first vehicle
+            
+            if exsistingService == nil && mobilenumberChecked != customerMobileNumberTextField.text! {
+                
+                mobilenumberChecked = customerMobileNumberTextField.text!
+                
+                MBProgressHUD.showHUDAddedTo(self.view, animated: true)
+        
+                
+                let (status,docId) = isMobileNumerExist()
+                
+                if status == .Found {
+                    let retrDoc = SharedClass.sharedInstance.database?.documentWithID(docId!)
+                    
+                    guard let docData = retrDoc!.properties else {
+                        MBProgressHUD.hideHUDForView(self.view, animated: true)
+                        return
+                    }
+                    guard let userData = docData["user"] as? [String:AnyObject] else {
+                        MBProgressHUD.hideHUDForView(self.view, animated: true)
+                        return
+                    }
+                    guard let (_,vehicleValue) = (userData["vehicles"] as? [String:AnyObject])?.first else {
+                        MBProgressHUD.hideHUDForView(self.view, animated: true)
+                        return
+                    }
+                    guard let vehicle = vehicleValue as?  [String:AnyObject]
+                    else {
+                        MBProgressHUD.hideHUDForView(self.view, animated: true)
+                        return
+                    }
+                    manufNameTextField.text = vehicle["manuf"] as? String
+                    registrationNumberTextField.text = vehicle["reg"] as? String
+                    modelNameTextField.text = vehicle["model"] as? String
+                    
+                    vehicleData = userData["vehicles"] as? [String:AnyObject]
+                    selectedVehicle = vehicle
+                    if let selectedType = vehicle["type"] as? String{
+                        vehicleTypeLabel.text = selectedType
+                        selectedVehicleType = selectedType
+                    }
+
+                }
+                
+                MBProgressHUD.hideHUDForView(self.view, animated: true)
+            }
         }
     }
     
@@ -870,12 +1006,16 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     @IBAction func saveTap(sender: AnyObject) {
         
         if !validation() {
+            MBProgressHUD.hideHUDForView(self.view, animated: true)
             return
         }
+        
+        MBProgressHUD.showHUDAddedTo(self.view, animated: true)
         
         if saveServiceInDB() {
             self.navigationController?.popViewControllerAnimated(true)
         }
+        MBProgressHUD.hideHUDForView(self.view, animated: true)
         
     }
     
@@ -889,11 +1029,12 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     @IBAction func ChooseVehicleClick(sender: AnyObject) {
     
-        SharedClass.alertView("", strMessage: "Cooming Soon!!")
-        return
-        /*
-        let chooseVehicleVCObj = self.storyboard?.instantiateViewControllerWithIdentifier("ChooseVehicleVC")
-        self.navigationController?.pushViewController(chooseVehicleVCObj!, animated: true)*/
+        /*SharedClass.alertView("", strMessage: "Cooming Soon!!")
+        return*/
+        let chooseVehicleVCObj = self.storyboard?.instantiateViewControllerWithIdentifier("ChooseVehicleVC") as! ChooseVehicleVC
+        chooseVehicleVCObj.vehicleData = vehicleData
+        chooseVehicleVCObj.selectedVehicle = selectedVehicle
+        self.navigationController?.pushViewController(chooseVehicleVCObj, animated: true)
     }
     
     @IBAction func SelectTreatmentsButtonClick(sender: AnyObject) {

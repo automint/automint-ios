@@ -10,18 +10,51 @@ import UIKit
 
 class ChooseVehicleVC: UIViewController,UITableViewDataSource, UITableViewDelegate {
 
-    var retrievedDoc : CBLDocument?
-    var dummyArray = NSMutableArray()
-    var newPart : String?
-    var newPartRate : Int?
+    var vehicleIdArray:[String]?
+    var vehicleData : [String:AnyObject]?
+    var selectedVehicle : [String:AnyObject]?
+    var selectedVehicleKey : String?
     
     @IBOutlet weak var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
     
-        setupTableView()
-    
+        if vehicleData != nil {
+            vehicleIdArray = Array(vehicleData!.keys)
+            
+            // find selected key
+            if selectedVehicle != nil && vehicleData != nil {
+                
+                for vehicleKey in vehicleData!.keys {
+                    
+                    // manuf
+                    if let selectedVehiclevehicleManuf = selectedVehicle!["manuf"] as? String, let vehileManuf = (vehicleData![vehicleKey]?.valueForKey("manuf") as? String) {
+                        
+                        if vehileManuf.lowercaseString != selectedVehiclevehicleManuf.lowercaseString {continue}
+                    }
+                    
+                    // model
+                    if let selectedVehiclevehicleModel = selectedVehicle!["model"] as? String, let vehicleModel = (vehicleData![vehicleKey]?.valueForKey("model") as? String) {
+                        
+                        if vehicleModel.lowercaseString != selectedVehiclevehicleModel.lowercaseString {continue}
+                    }
+                    
+                    // register number
+                    if let selectedVehiclevehicleReg = selectedVehicle!["reg"] as? String, let vehicleReg = (vehicleData![vehicleKey]?.valueForKey("reg") as? String) {
+                        
+                        if vehicleReg.lowercaseString != selectedVehiclevehicleReg.lowercaseString {continue}
+                    }
+                    selectedVehicleKey = vehicleKey
+                    
+                    break
+                    
+                }
+            }
+            
+            setupTableView()
+        }
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -43,136 +76,56 @@ class ChooseVehicleVC: UIViewController,UITableViewDataSource, UITableViewDelega
         tableView.alwaysBounceVertical = true
         tableView.tableFooterView = UIView()
         
-        retrieveParts()
-        
     }
     
-    func reloadTableData() -> Bool {
-        
-        guard var docData = retrievedDoc!.properties
-            else {return false}
-        
-        // display the retrieved document
-        print("The retrieved document contains: \(docData)");
-        
-        dummyArray = []
-        
-        for item in docData.keys {
-            
-            let keyString = item 
-            if keyString != "creator" && keyString != "_id" && keyString != "channel" {
-                
-                var valueString:[String:AnyObject] = ["rate":0]
-                if let value = docData[keyString] as? [String:AnyObject]{
-                    valueString = value
-                    let partDict:NSDictionary = ["partName":keyString,"value":valueString]
-                    dummyArray.addObject(partDict)
-                }
-            }
-            
-        }
-        
-        tableView.reloadData()
-        
-        return true
-    }
-    
-    // retrieves the parts
-    func retrieveParts() -> Bool {
-        
-        // retrieve the document from the database
-        if let retrievedDocTemp = SharedClass.sharedInstance.database?.documentWithID(SharedClass.sharedInstance.kInventoryDocId!) {
-            
-            retrievedDoc = retrievedDocTemp
-            
-            //retrievedDoc?.addObserver(self, forKeyPath: "regular", options: .New, context: nil)
-            
-            reloadTableData()
-            
-        } else {
-            
-            return false
-        }
-        
-        return true
-        
-    }
-    
-    // deletes the document
-    func deleteDb(documentID:String) -> Bool {
-        
-        do {
-            
-           try SharedClass.sharedInstance.database?.documentWithID(documentID)?.deleteDocument()
-            
-            // verify the deletion by retrieving the document and checking whether it has been deleted
-            if let ddoc = SharedClass.sharedInstance.database?.documentWithID(documentID) {
-                
-                print ("The document with ID \(documentID) \(ddoc.isDeleted ? "deleted" : "not deleted")")
-                
-            }
-            
-            
-        } catch let error as NSError {
-            
-            print(error.localizedDescription)
-            return false
-        }
-        
-        return true
-    }
-
     //MARK: TableView methods
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return dummyArray.count
+        return vehicleIdArray?.count ?? 0
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         
+        let cell:LabelTextCell = tableView.dequeueReusableCellWithIdentifier("LabelTextCell") as! LabelTextCell
+        
+        let vehicleKey = vehicleIdArray![indexPath.row]
+        
+        if selectedVehicleKey != nil && vehicleKey == selectedVehicleKey! {
             
-            let cell:LabelTextCell = tableView.dequeueReusableCellWithIdentifier("LabelTextCell") as! LabelTextCell
+            tableView.selectRowAtIndexPath(indexPath, animated: false, scrollPosition: UITableViewScrollPosition.None)
+        }
+        
+        if let vehicleInfo = vehicleData![vehicleKey] as? [String:AnyObject] {
             
-            if let treatment = dummyArray[indexPath.row] as? NSDictionary {
-                
-                // value
-                if let key = treatment["partName"] as? String {
-                    cell.nameLabel.text = key
+            var vehicleNameWithModel = ""
+            // manuf
+            if let manuf = vehicleInfo["manuf"] as? String {
+                if manuf.characters.count > 0 {
+                 vehicleNameWithModel = manuf + " "
                 }
-                
-                cell.valueTextFieldWidth.constant = 0
-                
-                let bgColorView = UIView()
-                bgColorView.backgroundColor = UIColor.init(red: 225/255.0, green: 235/255.0, blue: 248/255.0, alpha: 1)
-                cell.selectedBackgroundView = bgColorView
             }
             
+            if let vehicleModel = vehicleInfo["model"] as? String {
+                vehicleNameWithModel = vehicleNameWithModel + vehicleModel
+            }
             
-            return cell
-        
-    }
-    
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        
-        if indexPath.row != dummyArray.count {
+            cell.nameLabel.text = vehicleNameWithModel
             
+            cell.valueTextFieldWidth.constant = 0
+            
+            let bgColorView = UIView()
+            bgColorView.backgroundColor = UIColor.init(red: 225/255.0, green: 235/255.0, blue: 248/255.0, alpha: 1)
+            cell.selectedBackgroundView = bgColorView
         }
         
-    }
-    
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        
-        if indexPath.row == dummyArray.count {
-            return false
+        if indexPath.row == vehicleIdArray?.count {
+            cell.bottomSepLabel.hidden = true
+        } else {
+            cell.bottomSepLabel.hidden = false
         }
-        return false//true
-    }
-    
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.Delete) {
         
-            
-        }
+        return cell
+        
     }
     
     //MARK: Action
@@ -180,6 +133,24 @@ class ChooseVehicleVC: UIViewController,UITableViewDataSource, UITableViewDelega
     @IBAction func backButtonClick(sender: AnyObject) {
         
         self.navigationController?.popViewControllerAnimated(true)
+    }
+    
+    
+    @IBAction func doneButtonClick(sender: AnyObject) {
+        
+        let addSesrviceVCObj = self.navigationController?.viewControllers[(self.navigationController?.viewControllers.count)!-2] as! AddServiceVC
+        
+        var selectedVehicleId:String?
+        
+        if let selectedindex = tableView.indexPathForSelectedRow {
+            selectedVehicleId = vehicleIdArray![selectedindex.row]
+            
+            addSesrviceVCObj.selectedVehicle = vehicleData![selectedVehicleId!] as? [String:AnyObject]
+            
+        }
+        
+        self.navigationController?.popViewControllerAnimated(true)
+        
     }
     
 }

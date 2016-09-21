@@ -61,6 +61,6 @@ class SharedClass: NSObject {
         let uuid = NSUUID(UUIDBytes: uuidPointer)
         uuidPointer.dealloc(uuidSize)
         
-        return uuid.UUIDString
+        return uuid.UUIDString.lowercaseString
     }
 }

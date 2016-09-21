@@ -93,9 +93,10 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
             let keyString = item 
             if keyString != "creator" && keyString != "_id" && keyString != "channel" {
                 
-                var valueString:[String:AnyObject] = ["rate":0]
+                var valueString:[String:AnyObject] = ["rate":0,"amount":0]
                 if let value = docData[keyString] as? [String:AnyObject]{
                     valueString = value
+                    valueString["amount"] = value["rate"]
                     let partDict:NSDictionary = ["partName":keyString,"value":valueString]
                     partsArray.addObject(partDict)
                 }
@@ -129,7 +130,7 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
         
     }
     
-    // add Treatment
+    /*// add Treatment
     func addPart(documentID:String,newPartString:String, rate:Int) -> Bool {
         
         let retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
@@ -166,7 +167,7 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
         
         return true
         
-    }
+    }*/
     
     // deletes the document
     func deleteDb(documentID:String) -> Bool {
@@ -352,7 +353,19 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
         
         if newPart != nil && newPart?.characters.count>0 {
             
-            addPart ( SharedClass.sharedInstance.kInventoryDocId!, newPartString: newPart!, rate: newPartRate)
+            //addPart ( SharedClass.sharedInstance.kInventoryDocId!, newPartString: newPart!, rate: newPartRate)
+            
+            if partDict == nil { partDict = [:] }
+            
+            partDict![newPart!] = ["rate":newPartRate,"amount":newPartRate]
+            
+            let partDictToArray:NSDictionary = ["partName":newPart!,"value":["rate":newPartRate,"amount":newPartRate]]
+            partsArray.addObject(partDictToArray)
+            tableView.reloadData()
+            
+            newPart = ""
+            newPartRate = 0
+            
             
         } else {
             

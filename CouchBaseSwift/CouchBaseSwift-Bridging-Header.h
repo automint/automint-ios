@@ -7,3 +7,4 @@
 #import "CouchbaseLite/CBLDocument.h"
 
 #import "IQKeyboardManager.h"
+#import "MBProgressHUD.h"

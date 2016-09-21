@@ -13,7 +13,7 @@
             <rect key="frame" x="0.0" y="0.0" width="320" height="70"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
-                <frame key="frameInset" width="320" height="69"/>
+                <frame key="frameInset" width="320" height="69.5"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MGi-de-c8f" userLabel="SepTopLabel">
@@ -58,6 +58,15 @@
                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
+                    <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yvW-uu-AdU" userLabel="SepTopLabel">
+                        <color key="backgroundColor" red="0.66666668650000005" green="0.66666668650000005" blue="0.66666668650000005" alpha="0.29999999999999999" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="1" id="HTA-Zu-MKK"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
                 </subviews>
                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                 <constraints>
@@ -71,19 +80,23 @@
                     <constraint firstItem="FSS-aa-Kc4" firstAttribute="top" secondItem="j1h-cw-gK1" secondAttribute="top" id="IoH-ar-Uvr"/>
                     <constraint firstItem="FSS-aa-Kc4" firstAttribute="bottom" secondItem="j1h-cw-gK1" secondAttribute="bottom" id="JdY-5X-rcG"/>
                     <constraint firstItem="lQg-Tc-Xdc" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="8" id="NLg-at-aHD"/>
+                    <constraint firstAttribute="bottom" secondItem="yvW-uu-AdU" secondAttribute="bottom" id="RKy-aK-8ZL"/>
                     <constraint firstItem="lQg-Tc-Xdc" firstAttribute="trailing" secondItem="OuQ-Eu-2k3" secondAttribute="trailing" id="Rup-6Q-rke"/>
                     <constraint firstAttribute="trailing" secondItem="MGi-de-c8f" secondAttribute="trailing" id="TcG-xl-nUP"/>
                     <constraint firstItem="j1h-cw-gK1" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="20" symbolic="YES" id="Ue3-W0-iVM"/>
                     <constraint firstItem="lQg-Tc-Xdc" firstAttribute="bottom" secondItem="OuQ-Eu-2k3" secondAttribute="bottom" id="V4U-Ip-phh"/>
+                    <constraint firstItem="yvW-uu-AdU" firstAttribute="trailing" secondItem="MGi-de-c8f" secondAttribute="trailing" id="aEd-cL-H9J"/>
                     <constraint firstAttribute="bottom" secondItem="u6h-pX-AUG" secondAttribute="bottom" constant="20" symbolic="YES" id="fqz-xL-Dfz"/>
                     <constraint firstItem="lQg-Tc-Xdc" firstAttribute="leading" secondItem="u6h-pX-AUG" secondAttribute="trailing" constant="8" id="ipy-ha-X93"/>
                     <constraint firstAttribute="bottom" secondItem="lQg-Tc-Xdc" secondAttribute="bottom" constant="16" id="nWy-65-Z13"/>
                     <constraint firstItem="FSS-aa-Kc4" firstAttribute="trailing" secondItem="j1h-cw-gK1" secondAttribute="trailing" id="qMs-uh-tke"/>
+                    <constraint firstItem="yvW-uu-AdU" firstAttribute="leading" secondItem="MGi-de-c8f" secondAttribute="leading" id="tJn-NX-gFN"/>
                     <constraint firstItem="u6h-pX-AUG" firstAttribute="leading" secondItem="j1h-cw-gK1" secondAttribute="trailing" constant="16" id="zJZ-oa-e51"/>
                 </constraints>
             </tableViewCellContentView>
             <color key="tintColor" red="0.88235294117647056" green="0.92156862745098034" blue="0.97254901960784312" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
             <connections>
+                <outlet property="bottomSepLabel" destination="yvW-uu-AdU" id="Z7j-Xg-dcz"/>
                 <outlet property="checkImageView" destination="j1h-cw-gK1" id="q6z-J0-R7P"/>
                 <outlet property="nameLabel" destination="u6h-pX-AUG" id="BBm-hY-JMC"/>
                 <outlet property="uncheckView" destination="FSS-aa-Kc4" id="c8z-6f-zZD"/>

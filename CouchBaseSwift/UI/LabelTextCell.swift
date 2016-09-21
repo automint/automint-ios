@@ -13,10 +13,9 @@ class LabelTextCell: UITableViewCell {
     @IBOutlet weak var checkImageView: UIImageView!
     @IBOutlet weak var uncheckView: UIView!
     @IBOutlet weak var nameLabel: UILabel!
-    
     @IBOutlet weak var valueTextField: QuantityTextField!
     @IBOutlet weak var valueTextFieldWidth: NSLayoutConstraint!
-    
+    @IBOutlet weak var bottomSepLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()

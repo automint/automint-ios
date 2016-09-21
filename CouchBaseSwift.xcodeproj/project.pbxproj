@@ -16,6 +16,7 @@
 		33EBB2D31D84714800E50956 /* ChooseVehicleVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EBB2D11D84714800E50956 /* ChooseVehicleVC.swift */; };
 		33EBE4841D83BA6E00FC85C6 /* NSDateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EBE4831D83BA6E00FC85C6 /* NSDateExtensions.swift */; };
 		33EBE4881D83F81C00FC85C6 /* AllServiceVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EBE4871D83F81C00FC85C6 /* AllServiceVC.swift */; };
+		33EBF0641D91D5DE00CF695D /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 33EBF0631D91D5DE00CF695D /* MBProgressHUD.m */; };
 		33ED73B41D7F3DB100E5D4ED /* NameTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ED73B31D7F3DB100E5D4ED /* NameTextField.swift */; };
 		33ED73B61D7F511D00E5D4ED /* ChoosePartVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ED73B51D7F511D00E5D4ED /* ChoosePartVC.swift */; };
 		33ED73B81D7F517000E5D4ED /* ChooseTreatmentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ED73B71D7F517000E5D4ED /* ChooseTreatmentVC.swift */; };
@@ -73,6 +74,8 @@
 		33EBB2D11D84714800E50956 /* ChooseVehicleVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChooseVehicleVC.swift; sourceTree = "<group>"; };
 		33EBE4831D83BA6E00FC85C6 /* NSDateExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDateExtensions.swift; sourceTree = "<group>"; };
 		33EBE4871D83F81C00FC85C6 /* AllServiceVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllServiceVC.swift; sourceTree = "<group>"; };
+		33EBF0621D91D5DE00CF695D /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
+		33EBF0631D91D5DE00CF695D /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		33ED73B31D7F3DB100E5D4ED /* NameTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NameTextField.swift; sourceTree = "<group>"; };
 		33ED73B51D7F511D00E5D4ED /* ChoosePartVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChoosePartVC.swift; sourceTree = "<group>"; };
 		33ED73B71D7F517000E5D4ED /* ChooseTreatmentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChooseTreatmentVC.swift; sourceTree = "<group>"; };
@@ -165,6 +168,15 @@
 			name = LabelTextCell;
 			sourceTree = "<group>";
 		};
+		33EBF0611D91D5DE00CF695D /* MBProgressHUD */ = {
+			isa = PBXGroup;
+			children = (
+				33EBF0621D91D5DE00CF695D /* MBProgressHUD.h */,
+				33EBF0631D91D5DE00CF695D /* MBProgressHUD.m */,
+			);
+			path = MBProgressHUD;
+			sourceTree = "<group>";
+		};
 		33ED8C161D7BD5F3008AE48B /* FooterCell */ = {
 			isa = PBXGroup;
 			children = (
@@ -177,6 +189,7 @@
 		33ED8C191D7BF798008AE48B /* HelperClass */ = {
 			isa = PBXGroup;
 			children = (
+				33EBF0611D91D5DE00CF695D /* MBProgressHUD */,
 				33FD07C81D8DF0EE00431173 /* AutoCompleteTextField */,
 				33EE4E5A1D88752C00DD9D06 /* SnapKit */,
 				33ED8C641D7BFB3A008AE48B /* IQKeyBoardManager */,
@@ -487,6 +500,7 @@
 				33ED8C8C1D7BFB3A008AE48B /* IQUIViewController+Additions.m in Sources */,
 				33EE4E6A1D88752C00DD9D06 /* Constraint.swift in Sources */,
 				33ED8C8A1D7BFB3A008AE48B /* IQUITextFieldView+Additions.m in Sources */,
+				33EBF0641D91D5DE00CF695D /* MBProgressHUD.m in Sources */,
 				33EE4E751D88752C00DD9D06 /* SnapKit.swift in Sources */,
 				33EBB2D21D84714800E50956 /* ChooseVehicleTypeVC.swift in Sources */,
 				33EE4E6E1D88752C00DD9D06 /* ConstraintMaker.swift in Sources */,

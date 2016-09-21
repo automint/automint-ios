@@ -102,7 +102,7 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
         
     }
     
-    // add Treatment
+    /*// add Treatment
     func addTreatment(documentID:String,newTreatmentString:String, rate:Int) -> Bool {
         
         var newTreatmentDict : [String:AnyObject] = [:]
@@ -154,7 +154,7 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
         
         return true
         
-    }
+    }*/
     
     // deletes the document
     func deleteDb(documentID:String) -> Bool {
@@ -332,13 +332,13 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
                 
                 if problemDict == nil {problemDict = [:]}
             
-                problemDict![key] = ["rate":defaultRate]
+                problemDict![key] = ["rate":defaultRate,"amount":defaultRate]
                 
             } else if let defaultRate = treatmentDict.valueForKey(key)?.valueForKey("rate")?.valueForKey("default") as? Float32 {
                 
                 if problemDict == nil {problemDict = [:]}
                 
-                problemDict![key] = ["rate":defaultRate]
+                problemDict![key] = ["rate":defaultRate,"amount":defaultRate]
             }
 
         }
@@ -355,7 +355,26 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
     func addNewFeilds() {
         
         if newTreatment != nil && newTreatment?.characters.count>0 {
-            addTreatment(SharedClass.sharedInstance.kTrementDocId!, newTreatmentString: newTreatment!, rate: newTreatmentRate)
+            //addTreatment(SharedClass.sharedInstance.kTrementDocId!, newTreatmentString: newTreatment!, rate: newTreatmentRate)
+            
+            var newTreatmentDict : [String:AnyObject] = [:]
+            if selectedVehicleType! == "default" {
+                newTreatmentDict = [newTreatment!:["rate":["default":newTreatmentRate]]]
+            } else {
+                newTreatmentDict = [newTreatment!:["rate":["default":newTreatmentRate,selectedVehicleType!:newTreatmentRate]]]
+            }
+            
+            if problemDict == nil {problemDict = [:]}
+            
+            problemDict![newTreatment!] = ["rate":["default":newTreatmentRate]]
+            
+            treatmentArray.addObject(newTreatmentDict)
+            
+            tableView.reloadData()
+            
+            newTreatment = ""
+            newTreatmentRate = 0
+            
         } else {
             SharedClass.alertView("", strMessage: "Please enter treatment name")
         }
