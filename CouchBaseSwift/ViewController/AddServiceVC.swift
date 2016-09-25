@@ -20,7 +20,7 @@ enum CheckMobileNumberStatus {
 }
 
 class AddServiceVC: UIViewController,UITextFieldDelegate {
-
+    
     // Globle Variable
     var exsistingService : VehicleService?
     var selectedVehicle : [String:AnyObject]?
@@ -72,14 +72,15 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
 
         // get db instance
         database = SharedClass.sharedInstance.database
-        
+        // get username & mobile list for auto complete
         setupViewAndQuery()
-        
+        // parse doc to get username & mobile list
         getUserListWithMoileNumber()
+        // configure for auto complete & UI
         configureTextField()
+        // handle text change & update auto complete list
         handleTextFieldInterfaces()
-        
-        
+        // UI for selected parts & tratment
         self.dynamicConstraints()
         
         vehicleTypeLabel.text = "default"
@@ -93,8 +94,6 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
-        //TODO: update ui for selected vehile in vehicle details
         
         if selectedVehicle != nil {
             manufNameTextField.text = selectedVehicle!["manuf"] as? String
@@ -146,7 +145,11 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         guard let userData = docData["user"] as? [String:AnyObject]
             else{return}
         
-        customerNameTextField.text = userData["name"] as? String
+        if let username = userData["name"] as? String {
+            if username.lowercaseString != SharedClass.kAnonymous.lowercaseString {
+                customerNameTextField.text = username
+            }
+        }
         
         if let mobile = userData["mobile"] as? Int {
             customerMobileNumberTextField.text = String(mobile)
@@ -207,7 +210,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     func addNewServiceInDoc(documentID:String) -> Bool {
     
-        let retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+        var retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
         
         guard var docData = (retrDoc?.properties)
         else {
@@ -217,6 +220,10 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         
         let paymentStatus = paymentSwitch.on ? "paid" : "due"
         var serviceProperty:[String:AnyObject] = ["date":NSDate().toString(format: "yyyy-MM-dd'T'HH:mm:ssXXXXX"),"state":"Bill","status":paymentStatus,"cost" : Float32(serviceTotalInTitle.text!)!]
+        
+        if let latInvoiceNumber = getLastInvoiceNumber() {
+            serviceProperty["invoiceno"] = latInvoiceNumber+1
+        }
         
         if !paymentSwitch.on {
             serviceProperty["partialpayment"] =  ["total":0]
@@ -276,9 +283,30 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
                 var vehiclesData = userData["vehicles"] as! [String:AnyObject]
                 var serviceData = vehiclesData[vehicleFoundKey!] as! [String:AnyObject]
                 serviceData["services"] = services
-                
+                // check if name changed then delete doc and create new
+                let oldUserName = userData["name"] as! String
+                var newUserName = customerNameTextField.text!
+                if oldUserName.lowercaseString != newUserName.lowercaseString {
+                    docData["_deleted"] = true
+                    do {
+                        try retrDoc?.putProperties(docData)
+                    } catch _ as NSError { /* do nothing */ }
+                    
+                    // create new docId
+                    newUserName = SharedClass.kAnonymous
+                    if let userName = customerNameTextField?.text {
+                        if userName != "" { newUserName = userName}
+                    }
+                    let documentID = "usr-\(newUserName.lowercaseString)-\(SharedClass.timeBasedUUID())"
+                    docData.removeValueForKey("_deleted")
+                    docData.removeValueForKey("_rev")
+                    docData.removeValueForKey("_revisions")
+                    docData["_id"] = documentID
+                    retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+                }
                 vehiclesData[vehicleFoundKey!] = serviceData
                 userData["vehicles"] = vehiclesData
+                userData["name"] = newUserName
                 docData["user"] = userData
                 
             } else {
@@ -287,13 +315,33 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
                 let vehicleProperty = [newVehicleKey:["reg":registrationNumberTextField.text!,"manuf":manufNameTextField.text!,"model":modelNameTextField.text!,"type":vehicleTypeLabel.text!,"services":servicesDict]]
                 // add new vehicle in exsiting vehicle list
                 vehiclesDict.update(vehicleProperty)
-                
+                // check if name changed then delete doc and create new
                 var userData = docData["user"] as! [String:AnyObject]
-                userData["vehicles"] = vehiclesDict
-                docData["user"] = userData
+                let oldUserName = userData["name"] as! String
+                var newUserName = customerNameTextField.text!
+                if oldUserName.lowercaseString != newUserName.lowercaseString {
+                    docData["_deleted"] = true
+                    do {
+                        try retrDoc?.putProperties(docData)
+                    } catch _ as NSError { /* do nothing */ }
+                    
+                    // create new docId
+                    newUserName = SharedClass.kAnonymous
+                    if let userName = customerNameTextField?.text {
+                        if userName != "" { newUserName = userName}
+                    }
+                    let documentID = "usr-\(newUserName.lowercaseString)-\(SharedClass.timeBasedUUID())"
+                    docData.removeValueForKey("_deleted")
+                    docData.removeValueForKey("_rev")
+                    docData.removeValueForKey("_revisions")
+                    docData["_id"] = documentID
+                    retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+                }
                 
+                userData["vehicles"] = vehiclesDict
+                userData["name"] = newUserName
+                docData["user"] = userData
             }
-            
         
         } else {
             // no vehicle then add vehice & service
@@ -301,13 +349,36 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             let vehicleProperty = [newVehicleKey:["reg":registrationNumberTextField.text!,"manuf":manufNameTextField.text!,"model":modelNameTextField.text!,"type":vehicleTypeLabel.text!,"services":servicesDict]]
         
             var userData = docData["user"] as! [String:AnyObject]
+            // check if name changed then delete doc and create new
+            let oldUserName = userData["name"] as! String
+            var newUserName = customerNameTextField.text!
+            if oldUserName.lowercaseString != newUserName.lowercaseString {
+                docData["_deleted"] = true
+                do {
+                    try retrDoc?.putProperties(docData)
+                } catch _ as NSError { /* do nothing */ }
+                
+                // create new docId
+                newUserName = SharedClass.kAnonymous
+                if let userName = customerNameTextField?.text {
+                    if userName != "" { newUserName = userName}
+                }
+                let documentID = "usr-\(newUserName.lowercaseString)-\(SharedClass.timeBasedUUID())"
+                docData.removeValueForKey("_deleted")
+                docData.removeValueForKey("_rev")
+                docData.removeValueForKey("_revisions")
+                docData["_id"] = documentID
+                retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+            }
             userData["vehicles"] = vehicleProperty
+            userData["name"] = newUserName
             docData["user"] = userData
             
         }
         
         do {
             try retrDoc?.putProperties(docData)
+            updateInvoiceNumberbyOne()
         } catch let error as NSError {
             SharedClass.alertView("Error!!", strMessage: error.localizedDescription)
             return false
@@ -318,7 +389,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     func updateService(documentID:String) -> Bool {
     
-        let retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+        var retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
         
         guard var docData = retrDoc?.properties else {
             SharedClass.alertView("Error!!", strMessage: "Something went wrong. Please try again")
@@ -377,6 +448,28 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
      
         // update document
         var userData = docData["user"] as! [String:AnyObject]
+        // check if name changed then delete doc and create new
+        let oldUserName = userData["name"] as! String
+        var newUserName = customerNameTextField.text!
+        if oldUserName.lowercaseString != newUserName.lowercaseString {
+            docData["_deleted"] = true
+            do {
+                try retrDoc?.putProperties(docData)
+            } catch _ as NSError { /* do nothing */ }
+            
+            // create new docId
+            newUserName = SharedClass.kAnonymous
+            if let userName = customerNameTextField?.text {
+                if userName != "" { newUserName = userName}
+            }
+            let documentID = "usr-\(newUserName.lowercaseString)-\(SharedClass.timeBasedUUID())"
+            docData.removeValueForKey("_deleted")
+            docData.removeValueForKey("_rev")
+            docData.removeValueForKey("_revisions")
+            docData["_id"] = documentID
+            retrDoc = SharedClass.sharedInstance.database?.documentWithID(documentID)
+        }
+        
         var vehiclesData = userData["vehicles"] as! [String:AnyObject]
         var vehicleInfo = vehiclesData[vehicleKey] as! [String:AnyObject]
         vehicleInfo["services"] = services
@@ -387,7 +480,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         vehiclesData[vehicleKey] = vehicleInfo
         userData["vehicles"] = vehiclesData
         userData["mobile"] = Int(customerMobileNumberTextField.text!)!
-        docData["name"] = customerNameTextField.text!
+        userData["name"] = newUserName
         docData["user"] = userData
         
         do {
@@ -409,8 +502,8 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         if let tempDataDict = (retrDoc?.properties) {
             docData = tempDataDict
         } else {
-            docData["creator"] = "JIGNESH"
-            docData["channel"] = "usr-CHANNEL"
+            docData["creator"] = SharedClass.sharedInstance.pref!.username
+            docData["channel"] = SharedClass.sharedInstance.pref!.channel
         }
         
         let paymentStatus = paymentSwitch.on ? "paid" : "due"
@@ -438,7 +531,12 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         let newVehicleKey = "vhcl-" + SharedClass.timeBasedUUID()
         let vehicleProperty = [newVehicleKey:["reg":registrationNumberTextField.text!,"manuf":manufNameTextField.text!,"model":modelNameTextField.text!,"type":vehicleTypeLabel.text!,"services":servicesDict]]
         
-        var userData:[String:AnyObject] = ["name":customerNameTextField.text!,"vehicles":vehicleProperty]
+        var newUserName = SharedClass.kAnonymous
+        if let userName = customerNameTextField?.text {
+            if userName != "" { newUserName = userName}
+        }
+        
+        var userData:[String:AnyObject] = ["name":newUserName,"vehicles":vehicleProperty]
         userData["mobile"] = Int(customerMobileNumberTextField.text!)!
         
         docData["user"] = userData
@@ -484,7 +582,11 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             } else {
                 // new service in new doc
                 // create docId
-                let documentID = "usr-\(customerNameTextField.text!.lowercaseString)-\(SharedClass.timeBasedUUID())"
+                var newUserName = SharedClass.kAnonymous
+                if let userName = customerNameTextField?.text {
+                    if userName != "" { newUserName = userName}
+                }
+                let documentID = "usr-\(newUserName.lowercaseString)-\(SharedClass.timeBasedUUID())"
                 return addServiceInNewDoc(documentID)
             }
             
@@ -796,12 +898,19 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
                 if let name = doc["user"]?.valueForKey("name") as? String,
                     let mobile = doc["user"]?.valueForKey("mobile") as? Int,
                     let _id: String = doc["_id"] as? String
-                     where (_id != SharedClass.sharedInstance.kTrementDocId!) && (_id != SharedClass.sharedInstance.kInventoryDocId!) {
+                    where (_id != SharedClass.sharedInstance.kTrementDocId!) && (_id != SharedClass.sharedInstance.kInventoryDocId!) {
                     
-                    emit([_id,name,mobile],nil)
+                    var _deleted = false
+                    if let _deletedTemp = doc["_deleted"] as? Bool {
+                        _deleted = _deletedTemp
+                    }
+                    
+                    if !_deleted {
+                        emit([_id,name,mobile],nil)
+                    }
                     
                 }
-                }, version: "2.0")
+                }, version: "3.0")
         }
         
         listsLiveQuery = listsView.createQuery().asLiveQuery()
@@ -828,8 +937,6 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     private func handleTextFieldInterfaces(){
         customerNameTextField.onTextChange = {[weak self] text in
-            
-            //self?.customerNameTextField.autoCompleteStrings = ["Jignesh","Alpesh","Om"]
             
             let nameArray = self?.userNameList.filter { $0.lowercaseString.hasPrefix(text.lowercaseString) }
             if nameArray?.count == 0 {
@@ -901,6 +1008,56 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         }
         
         return true
+    }
+    
+    func checkMobileNumerAndUpdateData() {
+        
+        mobilenumberChecked = customerMobileNumberTextField.text!
+        
+        MBProgressHUD.showHUDAddedTo(self.view, animated: true)
+        
+        
+        let (status,docId) = isMobileNumerExist()
+        
+        if status == .Found {
+            let retrDoc = SharedClass.sharedInstance.database?.documentWithID(docId!)
+            
+            guard let docData = retrDoc!.properties else {
+                MBProgressHUD.hideHUDForView(self.view, animated: true)
+                return
+            }
+            guard let userData = docData["user"] as? [String:AnyObject] else {
+                MBProgressHUD.hideHUDForView(self.view, animated: true)
+                return
+            }
+            if let username = userData["name"] as? String {
+                if username.lowercaseString != SharedClass.kAnonymous.lowercaseString {
+                    customerNameTextField.text = username
+                }
+            }
+            guard let (_,vehicleValue) = (userData["vehicles"] as? [String:AnyObject])?.first else {
+                MBProgressHUD.hideHUDForView(self.view, animated: true)
+                return
+            }
+            guard let vehicle = vehicleValue as?  [String:AnyObject]
+                else {
+                    MBProgressHUD.hideHUDForView(self.view, animated: true)
+                    return
+            }
+            manufNameTextField.text = vehicle["manuf"] as? String
+            registrationNumberTextField.text = vehicle["reg"] as? String
+            modelNameTextField.text = vehicle["model"] as? String
+            
+            vehicleData = userData["vehicles"] as? [String:AnyObject]
+            selectedVehicle = vehicle
+            if let selectedType = vehicle["type"] as? String{
+                vehicleTypeLabel.text = selectedType
+                selectedVehicleType = selectedType
+            }
+            
+        }
+        
+        MBProgressHUD.hideHUDForView(self.view, animated: true)
     }
     
     //MARK: IBAction
@@ -977,47 +1134,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             
             if exsistingService == nil && mobilenumberChecked != customerMobileNumberTextField.text! {
                 
-                mobilenumberChecked = customerMobileNumberTextField.text!
-                
-                MBProgressHUD.showHUDAddedTo(self.view, animated: true)
-        
-                
-                let (status,docId) = isMobileNumerExist()
-                
-                if status == .Found {
-                    let retrDoc = SharedClass.sharedInstance.database?.documentWithID(docId!)
-                    
-                    guard let docData = retrDoc!.properties else {
-                        MBProgressHUD.hideHUDForView(self.view, animated: true)
-                        return
-                    }
-                    guard let userData = docData["user"] as? [String:AnyObject] else {
-                        MBProgressHUD.hideHUDForView(self.view, animated: true)
-                        return
-                    }
-                    guard let (_,vehicleValue) = (userData["vehicles"] as? [String:AnyObject])?.first else {
-                        MBProgressHUD.hideHUDForView(self.view, animated: true)
-                        return
-                    }
-                    guard let vehicle = vehicleValue as?  [String:AnyObject]
-                    else {
-                        MBProgressHUD.hideHUDForView(self.view, animated: true)
-                        return
-                    }
-                    manufNameTextField.text = vehicle["manuf"] as? String
-                    registrationNumberTextField.text = vehicle["reg"] as? String
-                    modelNameTextField.text = vehicle["model"] as? String
-                    
-                    vehicleData = userData["vehicles"] as? [String:AnyObject]
-                    selectedVehicle = vehicle
-                    if let selectedType = vehicle["type"] as? String{
-                        vehicleTypeLabel.text = selectedType
-                        selectedVehicleType = selectedType
-                    }
-
-                }
-                
-                MBProgressHUD.hideHUDForView(self.view, animated: true)
+                checkMobileNumerAndUpdateData()
             }
         }
     }
@@ -1155,5 +1272,15 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         
         return true
         
+    }
+    
+    func textFieldDidEndEditing(textField: UITextField) {
+        if textField == customerMobileNumberTextField /*&& (customerNameTextField.text?.isEmpty)!*/ {
+            
+            // check & get user detail only for new service
+            if exsistingService == nil && mobilenumberChecked != customerMobileNumberTextField.text! {
+                checkMobileNumerAndUpdateData()
+            }
+        }
     }
 }

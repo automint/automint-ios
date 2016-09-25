@@ -46,7 +46,11 @@ class QuantityTextField: UITextField,UITextFieldDelegate {
     
     func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
         
+        let userEnteredString = textField.text
+        let newString = (userEnteredString! as NSString).stringByReplacingCharactersInRange(range, withString: string) as NSString
+        
         if string == "" {
+            quantityDelegate?.quantityTextFieldDidEndEditing!(newString as String,atIndextValue: atIndext);
             return true
         }
         
@@ -54,8 +58,6 @@ class QuantityTextField: UITextField,UITextFieldDelegate {
         let match = string.rangeOfString(regEx, options: .RegularExpressionSearch)
         if (match == nil){ return false}
         
-        let userEnteredString = textField.text
-        let newString = (userEnteredString! as NSString).stringByReplacingCharactersInRange(range, withString: string) as NSString
         quantityDelegate?.quantityTextFieldDidEndEditing!(newString as String,atIndextValue: atIndext);
         
         return true

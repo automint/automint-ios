@@ -115,10 +115,9 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
             service = filtered[indexPath.row] as VehicleService
         }
         
-        
         let addServiceVCObj = self.storyboard?.instantiateViewControllerWithIdentifier("AddServiceVC") as! AddServiceVC
-            addServiceVCObj.exsistingService = service
-            self.navigationController?.pushViewController(addServiceVCObj, animated: true)
+        addServiceVCObj.exsistingService = service
+        self.navigationController?.pushViewController(addServiceVCObj, animated: true)
         
     }
     
@@ -179,10 +178,17 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
                 if let _id: String = doc["_id"] as? String
                     where (_id != SharedClass.sharedInstance.kTrementDocId!) && (_id != SharedClass.sharedInstance.kInventoryDocId!) {
                     
-                    emit(_id, nil)
+                    var _deleted = false
+                    if let _deletedTemp = doc["_deleted"] as? Bool {
+                        _deleted = _deletedTemp
+                    }
+                    
+                    if !_deleted {
+                        emit(_id, nil)
+                    }
                     
                 }
-                }, version: "1.0")
+                }, version: "2.0")
         }
         
         listsLiveQuery = listsView.createQuery().asLiveQuery()
@@ -226,6 +232,10 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
                     
                     let serviceData:VehicleService? = VehicleService()
                     serviceData!.userName = (docData["user"]?.valueForKey("name") as? String)!
+                    
+                    if serviceData!.userName.lowercaseString == SharedClass.kAnonymous.lowercaseString {
+                        serviceData!.userName = ""
+                    }
                     serviceData!.userMobile = docData["user"]!.valueForKey("mobile") as! Int
                     serviceData!.docID = row.documentID!
                     serviceData!.vehicleID = vehicleKey as! String
@@ -325,6 +335,18 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
         }
     }
     
-    
+    //MARK:- IBAction
+    @IBAction func logoutClick(sender: AnyObject) {
+        
+        let pref = SharedClass.sharedInstance.pref
+        
+        if (pref != nil) {
+            pref!.isLoggedIn = false
+            pref!.save(SharedClass.kPrefFile)
+        }
+        
+        self.navigationController?.popToRootViewControllerAnimated(true)
+        
+    }
     
 }

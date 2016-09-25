@@ -58,8 +58,8 @@ class ChooseVehicleTypeVC: UIViewController,UITableViewDataSource, UITableViewDe
                 docData = docDataTemp
                 docData["vehicletypes"] = ["default", "OTHER-TYPES"]
             } else {
-                docData["creator"] = "JIGNESH"
-                docData["channel"] = "CHANNEL"
+                docData["creator"] = SharedClass.sharedInstance.pref!.username
+                docData["channel"] = SharedClass.sharedInstance.pref!.channel
                 docData["vehicletypes"] = ["default", "OTHER-TYPES"]
             }
             

@@ -69,9 +69,15 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
                 let keyStrinValue = key as! String
                 let keyValue = tempDict.valueForKey(keyStrinValue) as! [String:AnyObject]
                 
-                let treatmentTemp = [keyStrinValue : keyValue]
+                var _deleted = false
+                if let _deletedTemp = keyValue["_deleted"] as? Bool {
+                    _deleted = _deletedTemp
+                }
                 
-                treatmentArray.addObject(treatmentTemp)
+                if !_deleted {
+                    let treatmentTemp = [keyStrinValue : keyValue]
+                    treatmentArray.addObject(treatmentTemp)
+                }
             }
         }
         
@@ -244,42 +250,6 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
         }
     }
     
-    /*func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-     
-        if indexPath.row < treatmentArray.count {
-            
-            let cell:LabelTextCell = tableView.cellForRowAtIndexPath(indexPath) as! LabelTextCell
-            cell.setSelected(true, animated: true)
-            
-        }
-        
-    }
-    
-    func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        
-        if indexPath.row < treatmentArray.count {
-            
-            let cell:LabelTextCell = tableView.cellForRowAtIndexPath(indexPath) as! LabelTextCell
-            cell.setSelected(false, animated: true)
-            
-        }
-    }*/
-    
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        
-        if indexPath.row == treatmentArray.count {
-            return false
-        }
-        return false//true
-    }
-    
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.Delete) {
-        
-            
-        }
-    }
-    
     //MARK: Quantity Textfield delegate
     func quantityTextFieldDidEndEditing(strText: String, atIndextValue: Int) {
         
@@ -287,6 +257,27 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
         
         if atIndextValue == treatmentArray.count {
             newTreatmentRate = Int(strText)!
+        } else {
+            
+            let treatmentDict = treatmentArray[atIndextValue]
+            let key = (treatmentDict.allKeys[0] as! String)
+            
+            let newValue:Int
+            
+            if strText == "" {
+                newValue = 0
+            } else {
+                newValue = Int(strText)!
+            }
+            
+            var newTreatmentDict : [String:AnyObject] = [:]
+            if selectedVehicleType! == "default" {
+                newTreatmentDict = [key:["rate":["default":newValue]]]
+            } else {
+                newTreatmentDict = [key:["rate":["default":newValue,selectedVehicleType!:newValue]]]
+            }
+            
+            treatmentArray[atIndextValue] = newTreatmentDict
         }
         
     }

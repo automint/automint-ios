@@ -12,7 +12,6 @@ let kSyncEnabled = true
 let kSyncGatewayUrl = NSURL(string: "http://localhost:4984/automint/")!
 let kLoggingEnabled = false
 
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -21,10 +20,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var puller: CBLReplication!
     var syncError: NSError?
     
+    var reachability    : Reachability?
+    
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
+        // Create sharedClass instance
+        _ = SharedClass.sharedInstance
+        
+        // start rechablity fot internet connection status check
+        setupRechablity()
+        
+        // check for license validation only if user logged in
+        licenseValidation()
+        
+        // keyboard settings
         IQKeyboardManager.sharedManager().enable = true
         
+        // start sync to server
         startReplication()
         
         return true
@@ -42,6 +54,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillEnterForeground(application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+        
+        // check for license validation only if user logged in
+        licenseValidation()
+        
     }
 
     func applicationDidBecomeActive(application: UIApplication) {
@@ -94,6 +110,81 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         CBLManager.enableLogging("SyncVerbose")
     }
     
-
+    //MARK:- setupRechablity
+    func setupRechablity(){
+        
+        do {
+            reachability = try Reachability.reachabilityForInternetConnection()
+        } catch {
+            print("Unable to create Reachability")
+        }
+        
+        NSNotificationCenter.defaultCenter().addObserver(self,selector: #selector(AppDelegate.reachabilityChanged(_:)), name: ReachabilityChangedNotification, object: reachability)
+        
+        do{
+            try reachability!.startNotifier()
+        }catch{
+            print("cantaccess")
+        }
+    }
+    
+    func reachabilityChanged(note: NSNotification) {
+        
+        let reachability = note.object as! Reachability
+        if reachability.isReachable() {
+            
+            if reachability.isReachableViaWiFi() {
+                print("Reachable via WiFi")
+            } else {
+                print("Reachable via Cellular")
+            }
+            
+            SharedClass.isReachable = true
+            //SharedInstance.InternetDelegate?.changeConnectionStatus!()
+            
+        }else {
+            
+            print("Not reachable")
+            SharedClass.isReachable = false
+            //Constant.alertView("Error!", strMessage: AlertMessages.kInternetAlertMessage)
+        }
+    }
+    
+    //MARK: Helper Methods
+    func licenseValidation () {
+        
+        guard let pref = SharedClass.sharedInstance.pref else {
+            return
+        }
+        
+        if pref.isLoggedIn {
+            if SharedClass.isReachable {
+                SharedClass.sharedInstance.getUpdatedUserDataWebservice(pref.username, password: pref.password, successHandler: { (isSuccess, errorString) in
+                    // no need to check if success or failed as if success then appPref updated with new data else with old data, will check for license validation
+                    let isValidLicense = SharedClass.sharedInstance.isLicenseValid()
+                    
+                    if !isValidLicense {
+                        pref.isLoggedIn = false
+                        pref.save(SharedClass.kPrefFile)
+                        // navigate to login VC
+                        dispatch_async(dispatch_get_main_queue(), {
+                            SharedClass.navController!.popToRootViewControllerAnimated(false)
+                        })
+                    }
+                })
+            }else{
+                // no internet then check with old data
+                let isValidLicense = SharedClass.sharedInstance.isLicenseValid()
+                
+                if !isValidLicense {
+                    pref.isLoggedIn = false
+                    pref.save(SharedClass.kPrefFile)
+                    // navigate to login VC
+                    SharedClass.navController!.popToRootViewControllerAnimated(false)
+                }
+            }
+        }
+    }
+    
 }
 

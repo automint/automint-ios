@@ -91,14 +91,22 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
         for item in docData.keys {
             
             let keyString = item 
-            if keyString != "creator" && keyString != "_id" && keyString != "channel" {
+            if keyString != "creator" && keyString != "_id" && keyString != "channel" && keyString != "_rev" && keyString != "_revisions" {
                 
                 var valueString:[String:AnyObject] = ["rate":0,"amount":0]
                 if let value = docData[keyString] as? [String:AnyObject]{
-                    valueString = value
-                    valueString["amount"] = value["rate"]
-                    let partDict:NSDictionary = ["partName":keyString,"value":valueString]
-                    partsArray.addObject(partDict)
+                    
+                    var _deleted = false
+                    if let _deletedTemp = value["_deleted"] as? Bool {
+                        _deleted = _deletedTemp
+                    }
+                    
+                    if !_deleted {
+                        valueString = value
+                        valueString["amount"] = value["rate"]
+                        let partDict:NSDictionary = ["partName":keyString,"value":valueString]
+                        partsArray.addObject(partDict)
+                    }
                 }
             }
             
@@ -300,6 +308,15 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
         
         if atIndextValue == partsArray.count {
             newPartRate = Int(strText)!
+        } else {
+            
+            var newRate = 0
+            if strText != "" {
+                newRate = Int(strText)!
+            }
+            let oldValue = partsArray[atIndextValue] as! [String:AnyObject]
+            let newValue:NSDictionary = ["partName":oldValue["partName"]!,"value":["rate":newRate,"amount":newRate]]
+            partsArray[atIndextValue] = newValue
         }
         
     }

@@ -36,6 +36,11 @@
 		33ED8C941D7BFB3A008AE48B /* IQToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 33ED8C831D7BFB3A008AE48B /* IQToolbar.m */; };
 		33ED8C951D7BFB3A008AE48B /* IQUIView+IQKeyboardToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 33ED8C851D7BFB3A008AE48B /* IQUIView+IQKeyboardToolbar.m */; };
 		33ED8C961D7BFB3A008AE48B /* IQKeyboardManager.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 33ED8C881D7BFB3A008AE48B /* IQKeyboardManager.bundle */; };
+		33EDD4F11D962F1500B3C553 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EDD4F01D962F1500B3C553 /* LoginVC.swift */; };
+		33EDD4F31D96399400B3C553 /* AMTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EDD4F21D96399400B3C553 /* AMTextField.swift */; };
+		33EDD4F51D9668BF00B3C553 /* AppPref.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EDD4F41D9668BF00B3C553 /* AppPref.swift */; };
+		33EDD4F71D9679C000B3C553 /* Webservice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EDD4F61D9679C000B3C553 /* Webservice.swift */; };
+		33EDD4F91D967BAD00B3C553 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EDD4F81D967BAD00B3C553 /* Reachability.swift */; };
 		33EE4E6A1D88752C00DD9D06 /* Constraint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EE4E5B1D88752C00DD9D06 /* Constraint.swift */; };
 		33EE4E6B1D88752C00DD9D06 /* ConstraintAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EE4E5C1D88752C00DD9D06 /* ConstraintAttributes.swift */; };
 		33EE4E6C1D88752C00DD9D06 /* ConstraintDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EE4E5D1D88752C00DD9D06 /* ConstraintDescription.swift */; };
@@ -111,6 +116,11 @@
 		33ED8C851D7BFB3A008AE48B /* IQUIView+IQKeyboardToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "IQUIView+IQKeyboardToolbar.m"; sourceTree = "<group>"; };
 		33ED8C861D7BFB3A008AE48B /* KeyboardManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardManager.h; sourceTree = "<group>"; };
 		33ED8C881D7BFB3A008AE48B /* IQKeyboardManager.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = IQKeyboardManager.bundle; sourceTree = "<group>"; };
+		33EDD4F01D962F1500B3C553 /* LoginVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
+		33EDD4F21D96399400B3C553 /* AMTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AMTextField.swift; sourceTree = "<group>"; };
+		33EDD4F41D9668BF00B3C553 /* AppPref.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppPref.swift; sourceTree = "<group>"; };
+		33EDD4F61D9679C000B3C553 /* Webservice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Webservice.swift; sourceTree = "<group>"; };
+		33EDD4F81D967BAD00B3C553 /* Reachability.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		33EE4E5B1D88752C00DD9D06 /* Constraint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constraint.swift; sourceTree = "<group>"; };
 		33EE4E5C1D88752C00DD9D06 /* ConstraintAttributes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConstraintAttributes.swift; sourceTree = "<group>"; };
 		33EE4E5D1D88752C00DD9D06 /* ConstraintDescription.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConstraintDescription.swift; sourceTree = "<group>"; };
@@ -189,6 +199,8 @@
 		33ED8C191D7BF798008AE48B /* HelperClass */ = {
 			isa = PBXGroup;
 			children = (
+				33EDD4F81D967BAD00B3C553 /* Reachability.swift */,
+				33EDD4F61D9679C000B3C553 /* Webservice.swift */,
 				33EBF0611D91D5DE00CF695D /* MBProgressHUD */,
 				33FD07C81D8DF0EE00431173 /* AutoCompleteTextField */,
 				33EE4E5A1D88752C00DD9D06 /* SnapKit */,
@@ -323,12 +335,12 @@
 		33EF313B1D7893100005E218 /* CouchBaseSwift */ = {
 			isa = PBXGroup;
 			children = (
+				33EF313C1D7893100005E218 /* AppDelegate.swift */,
 				33ED8C191D7BF798008AE48B /* HelperClass */,
 				33EF31551D78954C0005E218 /* Model */,
 				33EF31561D78954C0005E218 /* UI */,
 				33EF31571D78954C0005E218 /* ViewController */,
 				33EF314E1D7893F20005E218 /* Frameworks */,
-				33EF313C1D7893100005E218 /* AppDelegate.swift */,
 				33EF31481D7893100005E218 /* Info.plist */,
 				33EF31511D7894120005E218 /* CouchBaseSwift-Bridging-Header.h */,
 			);
@@ -350,12 +362,14 @@
 		33EF31551D78954C0005E218 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				33EDD4F41D9668BF00B3C553 /* AppPref.swift */,
 				33EBE4831D83BA6E00FC85C6 /* NSDateExtensions.swift */,
 				3306EAA61D7B3D7B00603294 /* QuantityTextField.swift */,
 				33EF31581D7895B40005E218 /* SharedClass.swift */,
 				33ED73B31D7F3DB100E5D4ED /* NameTextField.swift */,
 				33EBB2CE1D845AD300E50956 /* VehicleService.swift */,
 				3356111E1D8569F00067E322 /* AMExtension.swift */,
+				33EDD4F21D96399400B3C553 /* AMTextField.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -381,6 +395,7 @@
 				33ED73B51D7F511D00E5D4ED /* ChoosePartVC.swift */,
 				33FDF8721D808A94007A76C6 /* AddServiceVC.swift */,
 				33EBE4871D83F81C00FC85C6 /* AllServiceVC.swift */,
+				33EDD4F01D962F1500B3C553 /* LoginVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -474,6 +489,7 @@
 				33ED8C8E1D7BFB3A008AE48B /* IQKeyboardManager.m in Sources */,
 				33EE4E711D88752C00DD9D06 /* EdgeInsets.swift in Sources */,
 				33EE4E6F1D88752C00DD9D06 /* ConstraintRelation.swift in Sources */,
+				33EDD4F31D96399400B3C553 /* AMTextField.swift in Sources */,
 				33EF31591D7895B40005E218 /* SharedClass.swift in Sources */,
 				33EE4E6D1D88752C00DD9D06 /* ConstraintItem.swift in Sources */,
 				33EE4E6B1D88752C00DD9D06 /* ConstraintAttributes.swift in Sources */,
@@ -483,6 +499,7 @@
 				33EBE4841D83BA6E00FC85C6 /* NSDateExtensions.swift in Sources */,
 				33ED8C901D7BFB3A008AE48B /* IQSegmentedNextPrevious.m in Sources */,
 				3356111F1D8569F00067E322 /* AMExtension.swift in Sources */,
+				33EDD4F91D967BAD00B3C553 /* Reachability.swift in Sources */,
 				33ED8C941D7BFB3A008AE48B /* IQToolbar.m in Sources */,
 				33ED8C8D1D7BFB3A008AE48B /* IQUIWindow+Hierarchy.m in Sources */,
 				33EBB2D31D84714800E50956 /* ChooseVehicleVC.swift in Sources */,
@@ -492,6 +509,8 @@
 				33ED8C891D7BFB3A008AE48B /* IQNSArray+Sort.m in Sources */,
 				3306EAA71D7B3D7B00603294 /* QuantityTextField.swift in Sources */,
 				33ED73B81D7F517000E5D4ED /* ChooseTreatmentVC.swift in Sources */,
+				33EDD4F11D962F1500B3C553 /* LoginVC.swift in Sources */,
+				33EDD4F51D9668BF00B3C553 /* AppPref.swift in Sources */,
 				33EE4E761D88752C00DD9D06 /* View+SnapKit.swift in Sources */,
 				33ED8C8F1D7BFB3A008AE48B /* IQKeyboardReturnKeyHandler.m in Sources */,
 				33ED8C141D7BD581008AE48B /* FooterCell.swift in Sources */,
@@ -507,6 +526,7 @@
 				33ED8C8B1D7BFB3A008AE48B /* IQUIView+Hierarchy.m in Sources */,
 				33EE4E731D88752C00DD9D06 /* LayoutConstraint.swift in Sources */,
 				33EE4E6C1D88752C00DD9D06 /* ConstraintDescription.swift in Sources */,
+				33EDD4F71D9679C000B3C553 /* Webservice.swift in Sources */,
 				33EE4E741D88752C00DD9D06 /* LayoutGuide+SnapKit.swift in Sources */,
 				33EE4E771D88752C00DD9D06 /* ViewController+SnapKit.swift in Sources */,
 				33ED73B61D7F511D00E5D4ED /* ChoosePartVC.swift in Sources */,
