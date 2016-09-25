@@ -87,7 +87,7 @@ class SharedClass: NSObject {
         
         let webAPI = Webservice()
         //TODO: update url
-        webAPI.RequestForPost("/licensing/0.1/auth", postData: postData) { (response, isSuccess) in
+        webAPI.RequestForPost("www.lab.automint.in/licensing/0.1/auth", postData: postData) { (response, isSuccess) in
             
             var messageString = ""
             var isOk = false

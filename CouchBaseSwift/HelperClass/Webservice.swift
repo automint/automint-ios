@@ -127,10 +127,9 @@ class Webservice: NSObject {
                 
                 if error != nil {
                     
-                    //SharedClass.alertView("Connection Error!", strMessage: "Connection timed out please try again.")
                     //successHandler(response: NSDictionary(), isSuccess: false)
                     //print(error)
-                    
+                    //return
                     //TODO: only for testing
                     let responseDictionary : NSDictionary = [
                         "data": [
