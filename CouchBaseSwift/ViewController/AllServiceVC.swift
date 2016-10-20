@@ -236,7 +236,16 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
                     if serviceData!.userName.lowercaseString == SharedClass.kAnonymous.lowercaseString {
                         serviceData!.userName = ""
                     }
-                    serviceData!.userMobile = docData["user"]!.valueForKey("mobile") as! Int
+                    
+                    if let mobileNumber = docData["user"]!.valueForKey("mobile") as? String {
+                        if let mobileNumberInt = Int(mobileNumber) {
+                            serviceData!.userMobile = mobileNumberInt
+                        }
+                    } else if let mobileNumber = docData["user"]!.valueForKey("mobile") as? Int {
+                        serviceData!.userMobile = mobileNumber
+                    }
+                    
+                    
                     serviceData!.docID = row.documentID!
                     serviceData!.vehicleID = vehicleKey as! String
                     serviceData!.serviceId = serviceKey as! String
@@ -257,8 +266,15 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
                         serviceData!.date = serviceDate
                     }
                     
+                    if let cost = serviceDict.valueForKey("cost") as? String {
+                        if let costFloatValue = Float32(cost) {
+                            serviceData!.totalCost = costFloatValue
+                        }
+                    } else if let cost = serviceDict.valueForKey("cost") as? Float32 {
+                        serviceData!.totalCost = cost
+                    }
                     // get total amount by problem cost + part cost
-                    var totalAmmount:Float32 = 0.0
+                    /*var totalAmmount:Float32 = 0.0
                     if let problemsDict = serviceDict.valueForKey("problems") as? [String:AnyObject] {
                         
                         for problemKey in problemsDict.keys {
@@ -283,7 +299,9 @@ class AllServiceVC: UIViewController,UITableViewDelegate,UISearchBarDelegate {
                         }
                     }
                     
-                    serviceData!.totalCost = totalAmmount
+                    serviceData!.totalCost = totalAmmount*/
+                    
+                    
                     serviceList?.append(serviceData!)
                     
                 }

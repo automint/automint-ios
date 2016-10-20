@@ -28,6 +28,9 @@ class LoginVC: UIViewController,UITextFieldDelegate {
             SharedClass.sharedInstance.kInventoryDocId = "inventory-\(pref!.channel)"
             SharedClass.sharedInstance.kSettingDocId = "settings-\(pref!.channel)"
             
+            // start sync to server
+            (UIApplication.sharedApplication().delegate as! AppDelegate).startReplication()
+            
             let serviceListVCObj = self.storyboard?.instantiateViewControllerWithIdentifier("AllServiceVC") as! AllServiceVC
             self.navigationController?.pushViewController(serviceListVCObj, animated: false)
         }
@@ -84,6 +87,8 @@ class LoginVC: UIViewController,UITextFieldDelegate {
                         SharedClass.sharedInstance.kInventoryDocId = "inventory-\(pref.channel)"
                         SharedClass.sharedInstance.kSettingDocId = "settings-\(pref.channel)"
             
+                        // start sync to server
+                        (UIApplication.sharedApplication().delegate as! AppDelegate).startReplication()
                         
                         let serviceListVCObj = self.storyboard?.instantiateViewControllerWithIdentifier("AllServiceVC") as! AllServiceVC
                         dispatch_async(dispatch_get_main_queue(), {

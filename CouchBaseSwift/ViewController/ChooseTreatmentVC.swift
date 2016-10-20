@@ -253,7 +253,7 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
     //MARK: Quantity Textfield delegate
     func quantityTextFieldDidEndEditing(strText: String, atIndextValue: Int) {
         
-        print("Value : \(strText) for index:\(atIndextValue)")
+        //print("Value : \(strText) for index:\(atIndextValue)")
         
         if atIndextValue == treatmentArray.count {
             newTreatmentRate = Int(strText)!
@@ -284,7 +284,7 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
     
     func nameTextFieldDidEndEditing(strText: String, atIndextValue: Int) {
         
-        print("Value : \(strText) for index:\(atIndextValue)")
+        //print("Value : \(strText) for index:\(atIndextValue)")
         
         if atIndextValue == treatmentArray.count {
             newTreatment = strText
@@ -307,6 +307,7 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
             else {
                 let addSesrviceVCObj = self.navigationController?.viewControllers[(self.navigationController?.viewControllers.count)!-2] as! AddServiceVC
                 addSesrviceVCObj.problemDict = problemDict
+                addSesrviceVCObj.needToRecalculateCost = true
                 self.navigationController?.popViewControllerAnimated(true)
                 return
             }
@@ -338,6 +339,7 @@ class ChooseTreatmentVC: UIViewController,UITableViewDataSource, UITableViewDele
         
         let addSesrviceVCObj = self.navigationController?.viewControllers[(self.navigationController?.viewControllers.count)!-2] as! AddServiceVC
         addSesrviceVCObj.problemDict = problemDict
+        addSesrviceVCObj.needToRecalculateCost = true
         self.navigationController?.popViewControllerAnimated(true)
     
     }

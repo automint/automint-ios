@@ -304,7 +304,7 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
     //MARK: Quantity Textfield delegate
     func quantityTextFieldDidEndEditing(strText: String, atIndextValue: Int) {
         
-        print("Value : \(strText) for index:\(atIndextValue)")
+        //print("Value : \(strText) for index:\(atIndextValue)")
         
         if atIndextValue == partsArray.count {
             newPartRate = Int(strText)!
@@ -323,7 +323,7 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
     
     func nameTextFieldDidEndEditing(strText: String, atIndextValue: Int) {
         
-        print("Value : \(strText) for index:\(atIndextValue)")
+        //print("Value : \(strText) for index:\(atIndextValue)")
         
         if atIndextValue == partsArray.count {
             newPart = strText
@@ -340,6 +340,7 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
             else {
                 let addSesrviceVCObj = self.navigationController?.viewControllers[(self.navigationController?.viewControllers.count)!-2] as! AddServiceVC
                 addSesrviceVCObj.partDict = partDict
+                addSesrviceVCObj.needToRecalculateCost = true
                 self.navigationController?.popViewControllerAnimated(true)
                 return
         }
@@ -357,6 +358,7 @@ class ChoosePartVC: UIViewController,UITableViewDataSource, UITableViewDelegate,
         print(partDict)
         let addSesrviceVCObj = self.navigationController?.viewControllers[(self.navigationController?.viewControllers.count)!-2] as! AddServiceVC
         addSesrviceVCObj.partDict = partDict
+        addSesrviceVCObj.needToRecalculateCost = true
         self.navigationController?.popViewControllerAnimated(true)
         
     }

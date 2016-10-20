@@ -9,7 +9,6 @@
 import UIKit
 
 let kSyncEnabled = true
-let kSyncGatewayUrl = NSURL(string: "http://localhost:4984/automint/")!
 let kLoggingEnabled = false
 
 @UIApplicationMain
@@ -35,9 +34,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // keyboard settings
         IQKeyboardManager.sharedManager().enable = true
-        
-        // start sync to server
-        startReplication()
         
         return true
     }
@@ -71,41 +67,105 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: - Replication
     
     func startReplication() {
-        guard kSyncEnabled else {
+        
+        //enableLogging()
+        
+        guard kSyncEnabled, let userName = SharedClass.sharedInstance.pref?.username, let password = SharedClass.sharedInstance.pref?.password else {
             return
         }
         
+        guard let syncUrl = NSURL(string:Webservice.kSyncGatewayUrl) else {
+            return
+        }
+        
+        var authenticator: CBLAuthenticatorProtocol?
+        var headers: [String: String]?
+        
+        authenticator = CBLAuthenticator.SSLClientCertAuthenticatorWithAnonymousIdentity("MySSLXYWIK")
+        authenticator = CBLAuthenticator.basicAuthenticatorWithName(userName, password: password)
+        
+        //CBLReplication.setAnchorCerts([], onlyThese: false)
+        
+        let cred = NSString(format: "%@:%@", userName, password)
+        let credData = cred.dataUsingEncoding(NSUTF8StringEncoding)!
+        let credBase64 = credData.base64EncodedStringWithOptions([])
+        headers = ["Authorization": "Basic \(credBase64)"]
+        
         let database = SharedClass.sharedInstance.database!
-        pusher = database.createPushReplication(kSyncGatewayUrl)
+        pusher = database.createPushReplication(syncUrl)
         pusher.continuous = true
+        pusher.authenticator = authenticator
+        pusher.headers = headers
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.replicationProgress(_:)), name: kCBLReplicationChangeNotification, object: pusher)
-        puller = database.createPullReplication(kSyncGatewayUrl)
+        puller = database.createPullReplication(syncUrl)
         puller.continuous = true
+        puller.authenticator = authenticator
+        puller.headers = headers
+
+        //puller.credential = NSURLCredential(user: "vrl", password: "asdf", persistence: .ForSession)
+        var certs = NSMutableArray()
+        let resourcePath = NSBundle.mainBundle().pathForResource("cert_viral_mac", ofType: "cer")
+        if resourcePath != nil {
+            if let certData = NSData(contentsOfFile: resourcePath!) {
+                
+                //puller.customProperties = ["pinnedCert":certData]
+                //pusher.customProperties = ["pinnedCert":certData]
+                
+                let dataPtr = CFDataCreate(kCFAllocatorDefault, UnsafePointer<UInt8>(certData.bytes), certData.length)
+                
+                let certRef = SecCertificateCreateWithData(nil, dataPtr)
+                if certRef != nil {
+                    certs.addObject(certRef!)
+                    CBLReplication.setAnchorCerts(certs as [AnyObject], onlyThese: false)
+                }
+            }
+        }
+        
+        
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.replicationProgress(_:)), name: kCBLReplicationChangeNotification, object: puller)
-        pusher.start()
+        
+        //pusher.start()
         puller.start()
         
+    }
+    
+    func stopReplication() {
+        pusher.stop()
+        puller.stop()
     }
     
     func replicationProgress(notification: NSNotification) {
         UIApplication.sharedApplication().networkActivityIndicatorVisible =
             (pusher.status == .Active || puller.status == .Active)
         
-        let error = pusher.lastError ?? puller.lastError
+        let error = pusher.lastError
         if (error != syncError) {
             syncError = error
             if (error?.code) != nil {
-                NSLog("Replication Error: %@", error!)
+                print(puller.serverCertificate)
+                print(pusher.serverCertificate)
+                NSLog("Push: Replication Error: %@", error!)
             }
         }
+        
+        let error1 = puller.lastError
+        if (error1 != syncError) {
+            syncError = error1
+            if (error1?.code) != nil {
+                print(puller.serverCertificate)
+                print(pusher.serverCertificate)
+                NSLog("puller: Replication Error: %@", error1!)
+            }
+        }
+        
     }
     
     // MARK: - Logging
     func enableLogging() {
-        CBLManager.enableLogging("CBLDatabase")
-        CBLManager.enableLogging("View")
-        CBLManager.enableLogging("ViewVerbose")
-        CBLManager.enableLogging("Query")
+        //CBLManager.enableLogging("CBLDatabase")
+        //CBLManager.enableLogging("View")
+        //CBLManager.enableLogging("ViewVerbose")
+        //CBLManager.enableLogging("Query")
         CBLManager.enableLogging("Sync")
         CBLManager.enableLogging("SyncVerbose")
     }
@@ -168,7 +228,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         pref.save(SharedClass.kPrefFile)
                         // navigate to login VC
                         dispatch_async(dispatch_get_main_queue(), {
-                            SharedClass.navController!.popToRootViewControllerAnimated(false)
+                            
+                            self.stopReplication()
+                        SharedClass.navController!.popToRootViewControllerAnimated(false)
                         })
                     }
                 })
@@ -179,6 +241,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 if !isValidLicense {
                     pref.isLoggedIn = false
                     pref.save(SharedClass.kPrefFile)
+                    self.stopReplication()
                     // navigate to login VC
                     SharedClass.navController!.popToRootViewControllerAnimated(false)
                 }

@@ -1,11 +1,14 @@
 {
-  "interface":":4984",
-  "log": ["HTTP", "Auth"],
+  "interface":"lab.automint.in:4984",
+  "adminInterface":"lab.automint.in:4985",
+  "SSLCert": "ssl/cert.pem",
+  "SSLKey": "ssl/privkey.pem",
+  "log": ["HTTPS", "Auth"],
   "databases": {
     "automint": {
       "server": "walrus:",
       "users": {
-          "GUEST": {"disabled": false, "admin_channels": ["*"] }
+        "vrl": {"password": "asdf"}
         }
     }
   }

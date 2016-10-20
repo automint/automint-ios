@@ -22,6 +22,7 @@ enum CheckMobileNumberStatus {
 class AddServiceVC: UIViewController,UITextFieldDelegate {
     
     // Globle Variable
+    var needToRecalculateCost = false
     var exsistingService : VehicleService?
     var selectedVehicle : [String:AnyObject]?
     var vehicleData : [String:AnyObject]?
@@ -110,7 +111,11 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         vehicleTypeLabel.text = selectedVehicleType!
         vehicleSelectedInTitleLable.text = selectedVehicleType!.capitalizedString
         
-        serviceTotalInTitle.text = String(getTotalCostForService())
+        if (exsistingService != nil && needToRecalculateCost == false) {
+            serviceTotalInTitle.text = String(exsistingService!.totalCost!)
+        } else {
+            serviceTotalInTitle.text = String(getTotalCostForService())
+        }
         
     }
     
@@ -151,9 +156,12 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             }
         }
         
-        if let mobile = userData["mobile"] as? Int {
-            customerMobileNumberTextField.text = String(mobile)
+        if let mobileNumber = userData["mobile"] as? String {
+            customerMobileNumberTextField.text = mobileNumber
+        } else if let mobileNumber = userData["mobile"] as? Int {
+            customerMobileNumberTextField.text = String(mobileNumber)
         }
+        
         
         guard let vechileID = exsistingService?.vehicleID
             else {return}
@@ -796,9 +804,16 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             
             for problemKey in problemDict!.keys {
                 
-                if let problem = problemDict![problemKey] as? [String:Float32] {
-                    
-                    totalAmmount = totalAmmount + problem["rate"]!
+                if let problem = problemDict![problemKey] as? [String:AnyObject] {
+                    let amount = problem["amount"]
+                    if amount == nil {
+                        continue
+                    }
+                    if let rate = amount as? Float32 {
+                        totalAmmount = totalAmmount + rate
+                    } else if let rate = Float32(amount as! String) {
+                        totalAmmount = totalAmmount + rate
+                    }
                 }
                 
             }
@@ -808,9 +823,16 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             
             for partKey in partDict!.keys {
                 
-                if let part = partDict![partKey] as? [String:Float32] {
-                    
-                    totalAmmount = totalAmmount + part["rate"]!
+                if let part = partDict![partKey] as? [String:AnyObject] {
+                    let amount = part["amount"]
+                    if amount == nil{
+                        continue
+                    }
+                    if let rate = amount as? Float32 {
+                        totalAmmount = totalAmmount + rate
+                    } else if let rate = Float32(amount as! String) {
+                        totalAmmount = totalAmmount + rate
+                    }
                 }
                 
             }
@@ -835,7 +857,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
             guard let user = userDoc.document?["user"] as? [String:AnyObject]
                 else {continue}
             
-            if let name = user["name"] as? String, let number = user["mobile"] as? Int {
+            if let name = user["name"] as? String, let number = Int(String(user["mobile"]!))  {
                 
                 userNameList.append(name)
                 userMobileList[name] = number
@@ -895,8 +917,8 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
         
         if listsView.mapBlock == nil {
             listsView.setMapBlock({ (doc, emit) in
-                if let name = doc["user"]?.valueForKey("name") as? String,
-                    let mobile = doc["user"]?.valueForKey("mobile") as? Int,
+                if let name = doc["user"]?.valueForKey("name"),
+                    let mobile = doc["user"]?.valueForKey("mobile"),
                     let _id: String = doc["_id"] as? String
                     where (_id != SharedClass.sharedInstance.kTrementDocId!) && (_id != SharedClass.sharedInstance.kInventoryDocId!) {
                     
@@ -910,7 +932,7 @@ class AddServiceVC: UIViewController,UITextFieldDelegate {
                     }
                     
                 }
-                }, version: "3.0")
+                }, version: "3.1")
         }
         
         listsLiveQuery = listsView.createQuery().asLiveQuery()

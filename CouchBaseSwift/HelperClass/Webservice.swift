@@ -10,10 +10,18 @@ import UIKit
 import Foundation
 import MobileCoreServices
 
-class Webservice: NSObject {
+class Webservice: NSObject,NSURLSessionDelegate {
+    
+    // URLs
+    // lab.automint.in
+    // cbs.automint.in
+    // automint-sgw-cloud //vrl-sgw-cloud
+    
+    static let kLoginURL = "https://cbs.automint.in:8443/licensing/0.1/auth"
+    static let kSyncGatewayUrl = "https://cbs.automint.in:4984/automint-sgw-cloud"
+    static let kSyncGatewayLocalUrl = "https://lab.automint.in:4984/automint"
     
     // propetry
-    
     var parmeters   : NSDictionary!
     var userData    : Int!
     
@@ -110,15 +118,29 @@ class Webservice: NSObject {
         }
     }
     
+    func URLSession(session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust{
+            let credential = NSURLCredential(forTrust: challenge.protectionSpace.serverTrust!)
+            completionHandler(NSURLSessionAuthChallengeDisposition.UseCredential,credential);
+        }
+    }
+    
     func RequestForPost(url:String, postData:NSDictionary, successHandler:(response:
         NSDictionary,isSuccess:Bool)-> Void ) {
         
         if SharedClass.isReachable {
             parmeters = postData
             
+            print(parmeters)
+            
             let request = createRequest(postData,strURL: url)
             
-            let session = NSURLSession.sharedSession()
+            //let session = NSURLSession.sharedSession()
+            let configuration =
+                NSURLSessionConfiguration.defaultSessionConfiguration()
+            let session = NSURLSession(configuration: configuration,
+                                       delegate: self,
+                                       delegateQueue:NSOperationQueue.mainQueue())
             
             session.configuration.timeoutIntervalForRequest = 30.0
             session.configuration.timeoutIntervalForResource = 60.0
@@ -127,11 +149,11 @@ class Webservice: NSObject {
                 
                 if error != nil {
                     
-                    //successHandler(response: NSDictionary(), isSuccess: false)
-                    //print(error)
-                    //return
+                    successHandler(response: NSDictionary(), isSuccess: false)
+                    print(error)
+                    return
                     //TODO: only for testing
-                    let responseDictionary : NSDictionary = [
+                    /*let responseDictionary : NSDictionary = [
                         "data": [
                             "ok": true,
                             "userCtx": [
@@ -155,12 +177,12 @@ class Webservice: NSObject {
                         ]
                     ]
                     successHandler(response: responseDictionary, isSuccess: true)
-                    return
+                    return*/
                 }
                 
                 do {
                     
-                    if let responseDictionary = try NSJSONSerialization.JSONObjectWithData(data!, options: []) as? NSDictionary {
+                    if let responseDictionary = try NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments) as? NSDictionary {
                         
                         print("success == \(responseDictionary)")
                         successHandler(response: responseDictionary, isSuccess: true)
@@ -191,10 +213,10 @@ class Webservice: NSObject {
         let url = NSURL(string: strURL as String)!
         let request = NSMutableURLRequest(URL: url)
         request.HTTPMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/x-www-form-urlencoded; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        request.HTTPBody   = createBodyWithParameters(parameter, boundary: boundary)
-        
+        //request.HTTPBody   = createBodyWithParameters(parameter, boundary: boundary)
+        request.setBodyContent(parameter as! [String : String])
         return request
     }
     
@@ -205,7 +227,7 @@ class Webservice: NSObject {
         if parameters != nil {
             for (key, value) in parameters! {
                 body.appendString("--\(boundary)\r\n")
-                body.appendString("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+                body.appendString("Content-Disposition: x-www-form-urlencoded; name=\"\(key)\"\r\n\r\n")
                 body.appendString("\(value)\r\n")
             }
         }

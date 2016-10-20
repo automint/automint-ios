@@ -86,8 +86,8 @@ class SharedClass: NSObject {
         let postData = ["name":username,"password":password]
         
         let webAPI = Webservice()
-        //TODO: update url
-        webAPI.RequestForPost("www.lab.automint.in/licensing/0.1/auth", postData: postData) { (response, isSuccess) in
+        
+        webAPI.RequestForPost(Webservice.kLoginURL, postData: postData) { (response, isSuccess) in
             
             var messageString = ""
             var isOk = false
@@ -96,7 +96,7 @@ class SharedClass: NSObject {
                 
                 NSLog("response : %@",response)
                 
-                guard  let status :String  = (response.valueForKey("data")?.valueForKey("mint_code"))! as? String else {
+                guard  let status :String  = (response.valueForKey("mint_code"))! as? String else {
                     
                     if successHandler != nil {
                         successHandler!(isSuccess: false, errorString: "Something went wrong, Please try again")
@@ -106,7 +106,7 @@ class SharedClass: NSObject {
                 
                 switch status {
                     case "AU100":
-                        let (status,message) = self.parseSuccessData(response.valueForKey("data") as? [String:AnyObject])
+                        let (status,message) = self.parseSuccessData(response as? [String:AnyObject])
                         messageString = message
                         isOk = status
                     case "AU200":
@@ -116,11 +116,11 @@ class SharedClass: NSObject {
                         messageString = "User name is not valid"
                         isOk = false
                     case "AU312":
-                        messageString = "User name is not valid"
+                        messageString = "Password is not valid"
                         isOk = false
-                    case "AU321","AU322":
-                        messageString = "User name is not valid"
-                        isOk = false
+                    //case "AU321","AU322":
+                    //    messageString = "User name is not valid"
+                    //    isOk = false
                     //case "AU330":// no lic data in db
                     default:
                         messageString = "Something went wrong, Please try again"
@@ -157,26 +157,42 @@ class SharedClass: NSObject {
             return (status,messageString)
         }
         
-        guard let licStartString = licenseData["starts"] as? String, let licEndString = licenseData["ends"] as? String, let cloudStartString = cloudData["starts"] as? String, let cloudEndString = cloudData["ends"] as? String else {
+        guard let licStartString = licenseData["starts"] as? String, let cloudStartString = cloudData["starts"] as? String else {
             return (status,messageString)
         }
         
         let dateFormat = "yyyy-MM-dd"
-        guard let licStartDate = NSDate(fromString: licStartString, format: dateFormat), let licEndDate = NSDate(fromString: licEndString, format: dateFormat), let cloudStartDate = NSDate(fromString: cloudStartString, format: dateFormat), let cloudEndDate = NSDate(fromString: cloudEndString, format: dateFormat) else {
+        guard let licStartDate = NSDate(fromString: licStartString, format: dateFormat), let cloudStartDate = NSDate(fromString: cloudStartString, format: dateFormat) else {
             return (status,messageString)
         }
+        
+        let licenseDataObj = licenseData["ends"]
+        let cloudDataObj = cloudData["ends"]
+        if licenseDataObj == nil || cloudDataObj == nil {
+            return (status,messageString)
+        }
+        
+        let licEndDate:NSDate? = NSDate(fromString: String(licenseDataObj), format: dateFormat)
+        let cloudEndDate:NSDate? = NSDate(fromString: String(cloudDataObj), format: dateFormat)
         
         guard let userData = data!["userCtx"] as? [String:AnyObject], let channelData = userData["channels"] as? [String:AnyObject] else {
             return (status,messageString)
         }
         
-        let characterset = NSCharacterSet(charactersInString: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ0123456789")
+        //let characterset = NSCharacterSet(charactersInString: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ0123456789")
         
         // get channel from channel data
         var channel:String? = nil
         for channelKey in channelData.keys {
             
-            if channelKey.rangeOfCharacterFromSet(characterset.invertedSet) != nil {
+            /*if channelKey.rangeOfCharacterFromSet(characterset.invertedSet) != nil {
+                print("string contains special characters")
+            } else {
+                channel = channelKey
+                break
+            }*/
+            
+            if channelKey == "!" {
                 print("string contains special characters")
             } else {
                 channel = channelKey
@@ -212,16 +228,16 @@ class SharedClass: NSObject {
             return false
         }
         
-        guard let licEnd = SharedClass.sharedInstance.pref?.licenseEnd else {
-            return false
-        }
-        
         guard let cloudStart = SharedClass.sharedInstance.pref?.cloudStart else {
             return false
         }
         
+        guard let licEnd = SharedClass.sharedInstance.pref?.licenseEnd else {
+            return true // if end lic nil then is always valid
+        }
+        
         guard let cloudEnd = SharedClass.sharedInstance.pref?.cloudEnd else {
-            return false
+            return true // if end lic nil then is always valid
         }
         
         let currentDate = NSDate()
